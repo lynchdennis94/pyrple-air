@@ -130,3 +130,4 @@ dmypy.json
 
 # Application-specific exclusions
 .idea/
+testscript.py
