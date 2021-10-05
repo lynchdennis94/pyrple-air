@@ -88,7 +88,119 @@ class PyrpleAir:
 
         response = requests.get(self.__api_endpoint["sensors"], headers=header, params=parameters)
         return response.status_code, response.json()
+    
+    def create_group(self, name):
+        """
+        Create a new group which is a collection of individual sensor members.
         
+        :param name: name of the group to create (can contain spaces)
+        :return: the API response tuple (status code, response_content)        
+        """
+        header = {'X-API-Key': self.write_key}        
+        parameters = {'name': name}
+        
+        response = requests.post(self.__api_endpoint["groups"], headers=header, params=parameters)
+        return response.status_code, response.json()
+                
+    def delete_group(self, group_id):
+        """
+        Deletes the group specified by `group_id`
+        
+        :param group_id: The group_id of the requested group. This group must be owned by `self.read_key`
+        :return: the API response tuple (status code, response_content) - returns 204 on success"""
+        
+        header = {'X-API-Key': self.write_key}     
+        parameters = {"group_id": group_id}   
+        
+        response = requests.delete(self.__api_endpoint["group"].format(group_id=group_id), headers=header)
+        return response.status_code, response.text
+        
+    def add_group_member(self, group_id, sensor_id=None, sensor_index=None, owner_email=None, location_type=None):
+        """
+        Adds a certain sensor to a group by creating a new group member
+        
+        :param group_id: The group_id of the requested group. This group must be owned by `self.read_key`
+        :param sensor_id: The `sensor_id` of the new member sensor from the device label
+        :param sensor_index: The `sensor_index` from the web UI or `get_sensors_data()`
+        :param owner_email: Address that matches the owner email set during device registration
+        :param location_type: 0 = outside, 1 = inside 
+        
+        Public sensors can be added by either sensor_id or sensor_index
+        Private sensors must be added by specifying sensor_id, owner_email, and optionally location_type (if present during registration).        
+        """
+        header = {'X-API-Key': self.write_key}
+        parameters = {'group_id': group_id}
+
+        self.__add_optional_args_to_payload(parameters, locals(), ['group_id'])
+
+        response = requests.post(self.__api_endpoint["groups_members"].format(group_id=group_id), headers=header, params=parameters)
+        return response.status_code, response.json()
+        
+    def delete_group_member(self, group_id, member_id):
+        """
+        Removes a member (sensor) from a group 
+        
+        :param group_id: The group_id of the requested group. This group must be owned by `self.read_key`
+        :param member_id: The member_id of the sensor in the group - unique per group and not the sensor ID
+        :return: the API response tuple (status code, response_content) - returns 204 on success        
+        """            
+        header = {'X-API-Key': self.write_key}     
+        parameters = {"group_id": group_id, "member_id": member_id}   
+        
+        response = requests.delete(self.__api_endpoint["group_member"].format(group_id=group_id, member_id=member_id), headers=header)
+        return response.status_code, response.text
+     
+    def get_group_info(self, group_id):
+        """
+        Returns a list of all members contained in `group_id`
+        
+        :param group_id The group_id of the requested group. This group must be owned by `self.read_key`
+        :return: the API response tuple (status code, response_content)        
+        """
+        header = {'X-API-Key': self.read_key}
+        response = requests.get(self.__api_endpoint["group"].format(group_id=group_id), headers=header)
+        return response.status_code, response.json()
+    
+    def get_owned_groups(self):
+        """
+        Returns a list of all the groups owned by `self.read_key`
+        
+        :return: the API response tuple (status code, response_content)        
+        """
+        header = {'X-API-Key': self.read_key}
+        response = requests.get(self.__api_endpoint["groups"], headers=header)
+        return response.status_code, response.json()
+        
+        
+    def get_group_sensors_data(self, group_id, fields, cf=None, location_type=None, read_keys=None, show_only=None, modified_since=None,
+                         max_age=None, nwlng=None, nwlat=None, selng=None, selat=None):
+
+        """
+        Returns sensor data for a predetermined list of sensors contained by a specific `group_id`. Returned data is 
+        similar to `get_sensors_data()`
+
+        :param group_id The group_id of the requested group
+        :param fields: a comma-delimited list of specific fields to return in the response
+        :param cf: a float override used when using the pm2.5_alt field
+        :param location_type: the location type for sensors (0=Outside, 1=Inside)
+        :param read_keys: distinct read keys used for private devices - can be comma-delimited if multiple keys are used
+        :param show_only: A comma-separated list of sensor_index values, limiting results to the specified sensors
+        :param modified_since: Excludes results for sensors which were last modified BEFORE the specificed modified since timestamp
+        :param max_age: filters results to only include sensors updated within the last number of seconds (default of 604800)
+        :param nwlng: A northwest longitude coordinate for providing a bounding box to geographically bound sensors
+        :param nwlat: A northwest latitude coordinate for providing a bounding box to geographically bound sensors
+        :param selng: A southeast longitude coordinate for providing a bounding box to geographically bound sensors
+        :param selat: A southeast latitude coordinate for providing a bounding box to geographically bound sensors
+        :return: the API response tuple (status code, response_content)
+        """
+        header = {'X-API-Key': self.read_key}
+        parameters = {'fields': fields}
+
+        self.__add_optional_args_to_payload(parameters, locals(), ['fields'])
+
+        response = requests.get(self.__api_endpoint["groups_members"].format(group_id=group_id), headers=header, params=parameters)
+        return response.status_code, response.json()
+
 
     @staticmethod
     def __add_optional_args_to_payload(parameters, input_args, args_to_skip):
@@ -107,5 +219,3 @@ class PyrpleAir:
                     input_arg_value = input_args[input_arg_name]
                     if input_arg_value is not None:
                         parameters[input_arg_name] = input_arg_value
-
-
