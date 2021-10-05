@@ -5,10 +5,18 @@ Main entry point to the pyrpleair library. The official API definitions can be f
 import requests
 
 class PyrpleAir:
-    __check_api_endpoint = "https://api.purpleair.com/v1/keys"
-    __get_sensor_data_endpoint = "https://api.purpleair.com/v1/sensors/{}"
-    __get_sensors_data_endpoint = "https://api.purpleair.com/v1/sensors"
-
+    __api_base = "https://api.purpleair.com/"
+    __api_version = "v1"    
+    __api_endpoint = {
+        "keys": __api_base + __api_version + "/keys", 
+        "sensors": __api_base + __api_version + "/sensors",
+        "sensor": __api_base + __api_version + "/sensors/{sensor_index}",
+        "groups": __api_base + __api_version + "/groups",
+        "group":  __api_base + __api_version + "/groups/{group_id}",
+        "groups_members": __api_base + __api_version + "/groups/{group_id}/members",
+        "group_member": __api_base + __api_version + "/groups/{group_id}/members/{member_id}"        
+    }
+    
     def __init__(self, read_key=None, write_key=None):
         """
         Sets up a hook to interface with the Purple Air api
@@ -34,7 +42,7 @@ class PyrpleAir:
         :return: the api response tuple (status_code, response_content)
         """
         header = {'X-API-Key': key}
-        response = requests.get(self.__check_api_endpoint, headers=header)
+        response = requests.get(self.__api_endpoint["keys"], headers=header)
         return response.status_code, response.json()
 
     def get_sensor_data(self, sensor_index, read_key=None, fields=None, cf=None):
@@ -52,7 +60,7 @@ class PyrpleAir:
         parameters = {}
         self.__add_optional_args_to_payload(parameters, locals(), ['sensor_index'])
 
-        response = requests.get(self.__get_sensor_data_endpoint.format(sensor_index), headers=header, params=parameters)
+        response = requests.get(self.__api_endpoint["sensor"].format(sensor_index=sensor_index), headers=header, params=parameters)
         return response.status_code, response.json()
 
     def get_sensors_data(self, fields, cf=None, location_type=None, read_keys=None, show_only=None, modified_since=None,
@@ -78,7 +86,7 @@ class PyrpleAir:
 
         self.__add_optional_args_to_payload(parameters, locals(), ['fields'])
 
-        response = requests.get(self.__get_sensors_data_endpoint, headers=header, params=parameters)
+        response = requests.get(self.__api_endpoint["sensors"], headers=header, params=parameters)
         return response.status_code, response.json()
         
 
