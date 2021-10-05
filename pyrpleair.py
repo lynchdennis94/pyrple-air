@@ -1,9 +1,8 @@
 """
 Main entry point to the pyrpleair library. The official API definitions can be found at https://api.purpleair.com.
 """
-import json
-import requests
 
+import requests
 
 class PyrpleAir:
     __check_api_endpoint = "https://api.purpleair.com/v1/keys"
@@ -36,7 +35,7 @@ class PyrpleAir:
         """
         header = {'X-API-Key': key}
         response = requests.get(self.__check_api_endpoint, headers=header)
-        return response.status_code, json.loads(response.text)
+        return response.status_code, response.json()
 
     def get_sensor_data(self, sensor_index, read_key=None, fields=None, cf=None):
         """
@@ -54,7 +53,7 @@ class PyrpleAir:
         self.__add_optional_args_to_payload(parameters, locals(), ['sensor_index'])
 
         response = requests.get(self.__get_sensor_data_endpoint.format(sensor_index), headers=header, params=parameters)
-        return response.status_code, json.loads(response.text)
+        return response.status_code, response.json()
 
     def get_sensors_data(self, fields, cf=None, location_type=None, read_keys=None, show_only=None, modified_since=None,
                          max_age=None, nwlng=None, nwlat=None, selng=None, selat=None):
@@ -80,7 +79,8 @@ class PyrpleAir:
         self.__add_optional_args_to_payload(parameters, locals(), ['fields'])
 
         response = requests.get(self.__get_sensors_data_endpoint, headers=header, params=parameters)
-        return response.status_code, json.loads(response.text)
+        return response.status_code, response.json()
+        
 
     @staticmethod
     def __add_optional_args_to_payload(parameters, input_args, args_to_skip):
