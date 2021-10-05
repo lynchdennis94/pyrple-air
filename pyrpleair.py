@@ -1,5 +1,5 @@
 """
-Main entry point to the pyrpleair library. The official API definitions can be found at https://api.purpleair.com
+Main entry point to the pyrpleair library. The official API definitions can be found at https://api.purpleair.com.
 """
 import json
 import requests
@@ -17,6 +17,13 @@ class PyrpleAir:
         :param read_key: the read key provided by PurpleAir
         :param write_key: the write key provided by PurpleAir
         """
+        
+        if not (read_key or write_key):
+            raise ValueError(
+                "You need to specify at least one API key. " + 
+                "You can email contact@purpleair.com to obtain one."
+            )
+        
         self.read_key = read_key
         self.write_key = write_key
 
