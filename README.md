@@ -8,7 +8,6 @@ The library is intended to provide an easy interface for the official API withou
 
 # Requirements
 The following libraries are imported, and must be present for the pyrpleair library to function as expected:
-* json
 * requests
 
 # How to use
@@ -31,3 +30,5 @@ pyrpleair_instance.check_api_key(pyrpleair_instance.write_key) #Validates the wr
 * validate api keys using `check_api_key`
 * get data for a specific sensor using `get_sensor_data`
 * get data for a group of sensors using `get_sensors_data`
+* create and delete groups and members
+* get group and member data and lists
